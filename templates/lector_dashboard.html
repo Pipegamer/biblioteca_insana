@@ -1,0 +1,196 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Biblioteca - Portal del Lector</title>
+    <!-- Fuentes Académicas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Hoja de Estilos -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="lector-portal-body">
+
+    <!-- ===================================================================== -->
+    <!-- ENCABEZADO INSTITUCIONAL - PORTAL DEL LECTOR                           -->
+    <!-- ===================================================================== -->
+    <header class="header-academic">
+        <div class="header-content-wrapper">
+            <div class="brand-container">
+                <div class="emblem-seal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        <line x1="9" y1="7" x2="15" y2="7"></line>
+                        <line x1="9" y1="11" x2="15" y2="11"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <div class="badge-role-tag lector">Portal del Lector</div>
+                    <h1 class="brand-title">Biblioteca Central - Mi Biblioteca</h1>
+                    <p class="brand-subtitle">Catálogo Bibliográfico • Préstamos, Precios y Devoluciones en Línea</p>
+                </div>
+            </div>
+
+            <div class="user-session-nav">
+                <div class="user-info-pill">
+                    <span class="user-avatar-mini">📖</span>
+                    <span class="user-name-text">{{ nombre_mostrado }}</span>
+                    {% if lector and lector.rut %}
+                        <span class="user-badge-rut">{{ lector.rut }}</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'logout' %}" class="btn-logout" title="Cerrar Sesión">
+                    <span class="logout-icon">🚪</span> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+        <div class="gold-trim-bar"></div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- BANNER DE ALERTA DE MOROSIDAD (PERMANENTE SI HAY PRÉSTAMOS ATRASADOS) -->
+    <!-- ===================================================================== -->
+    <div id="morosidad-banner" class="morosidad-banner-container" style="display: none;">
+        <div class="morosidad-banner-content">
+            <div class="morosidad-icon">⛔</div>
+            <div class="morosidad-text">
+                <h3 class="morosidad-title">Plazo Expirado - Cuenta Bloqueada para Nuevas Reservas</h3>
+                <p class="morosidad-desc">
+                    Advertencia: El plazo para devolver tu libro ha expirado. Por favor, devuélvelo para poder realizar nuevas reservas.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- CONTENIDO PRINCIPAL DEL PORTAL                                        -->
+    <!-- ===================================================================== -->
+    <main class="main-container lector-main">
+
+        <!-- Notificaciones Toast -->
+        <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+        <!-- Tarjeta de Bienvenida Académica -->
+        <section class="welcome-hero-card">
+            <div class="welcome-text-side">
+                <h2 class="welcome-greeting">¡Bienvenido(a), {{ nombre_mostrado }}!</h2>
+                <p class="welcome-lead">
+                    Explora los ejemplares disponibles en el catálogo central de la universidad con sus portadas y valores, y gestiona tus préstamos activos en tiempo real.
+                </p>
+            </div>
+            <div class="welcome-stats-side">
+                <div class="stat-box">
+                    <span class="stat-number" id="stat-prestamos-activos">0</span>
+                    <span class="stat-label">Préstamos Activos</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number" id="stat-libros-disponibles">0</span>
+                    <span class="stat-label">Títulos en Catálogo</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 1: MIS PRÉSTAMOS ACTUALES (CON OPCIÓN DE DEVOLVER) -->
+        <section class="portal-section">
+            <div class="section-header-bar">
+                <div class="section-title-wrapper">
+                    <span class="section-icon">📑</span>
+                    <div>
+                        <h2 class="section-title">Mis Préstamos Actuales</h2>
+                        <p class="section-subtitle">Historial, estado de entrega y opción para devolver libros prestados</p>
+                    </div>
+                </div>
+                <button id="btn-refresh-prestamos" class="btn-secondary-academic" title="Actualizar estado de préstamos">
+                    🔄 Actualizar Préstamos
+                </button>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-body">
+                    <div id="loading-prestamos" class="loading-state">
+                        <div class="spinner-academic"></div>
+                        <p>Verificando estado de préstamos...</p>
+                    </div>
+
+                    <div id="prestamos-container" class="prestamos-table-wrapper" style="display: none;">
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th># ID</th>
+                                    <th>Libro</th>
+                                    <th>Valor / Ref.</th>
+                                    <th>Fecha de Devolución</th>
+                                    <th>Estado de Entrega</th>
+                                    <th>Situación</th>
+                                    <th style="text-align: center;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prestamos-tbody">
+                                <!-- Renderizado dinámicamente vía script.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="empty-prestamos" class="empty-state" style="display: none;">
+                        <div class="empty-icon">✨</div>
+                        <h3>No tienes préstamos pendientes</h3>
+                        <p>Tu cuenta se encuentra al día. Puedes solicitar un libro del catálogo a continuación.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: CATÁLOGO DE LIBROS DISPONIBLES (CON PORTADAS Y PRECIOS) -->
+        <section class="portal-section">
+            <div class="section-header-bar">
+                <div class="section-title-wrapper">
+                    <span class="section-icon">📚</span>
+                    <div>
+                        <h2 class="section-title">Catálogo de Libros Disponibles</h2>
+                        <p class="section-subtitle">Obras con precio de referencia y portadas ilustrativas</p>
+                    </div>
+                </div>
+                <div class="search-input-wrapper search-catalog-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input
+                        type="text"
+                        id="input-search-libros"
+                        class="search-control"
+                        placeholder="Buscar por título, autor o editorial..."
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+
+            <div id="loading-libros" class="loading-state">
+                <div class="spinner-academic"></div>
+                <p>Consultando catálogo bibliográfico...</p>
+            </div>
+
+            <!-- Cuadrícula de Libros -->
+            <div id="libros-grid" class="catalog-grid" style="display: none;">
+                <!-- Renderizado dinámicamente vía script.js -->
+            </div>
+
+            <div id="empty-libros" class="empty-state" style="display: none;">
+                <div class="empty-icon">🔍</div>
+                <h3>No se encontraron libros</h3>
+                <p>Intenta con otro término de búsqueda.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Pie de página formal -->
+    <footer class="footer-academic">
+        <p>© 2026 Biblioteca Central • Universidad & Centro de Estudios • Portal del Lector</p>
+    </footer>
+
+    <!-- Script de integración y verificación de morosidad -->
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

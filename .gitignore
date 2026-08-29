@@ -1,0 +1,36 @@
+# Entorno Virtual Python
+env/
+venv/
+ENV/
+.env/
+env*/
+*.venv/
+
+# Archivos compilados Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Base de datos local (SQLite)
+*.sqlite3
+db.sqlite3
+
+# Archivos Multimedia subidos por usuarios
+media/portadas/
+media/*
+!media/.gitkeep
+
+# IDEs y Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log

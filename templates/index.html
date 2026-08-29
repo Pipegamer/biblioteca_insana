@@ -1,0 +1,227 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Central - Sistema de Gestión</title>
+    <!-- Tipografías académicas desde Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Hoja de estilos principal -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+    <!-- ===================================================================== -->
+    <!-- ENCABEZADO INSTITUCIONAL / BARRA SUPERIOR                             -->
+    <!-- ===================================================================== -->
+    <header class="header-academic">
+        <div class="header-content-wrapper">
+            <div class="brand-container">
+                <div class="emblem-seal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather-book">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        <line x1="9" y1="7" x2="15" y2="7"></line>
+                        <line x1="9" y1="11" x2="15" y2="11"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title">Biblioteca Central - Sistema de Gestión</h1>
+                    <p class="brand-subtitle">Control Académico de Lectores • Modelo 3NF con Reglas de Borrado Lógico</p>
+                </div>
+            </div>
+
+            <!-- Accesos directos técnicos -->
+            <nav class="quick-nav">
+                <a href="/api/" target="_blank" class="nav-pill" title="Explorar API REST interactiva">
+                    <span class="pill-icon">⚡</span> API REST
+                </a>
+                <a href="/admin/" target="_blank" class="nav-pill" title="Ingresar al Panel Administrativo de Django">
+                    <span class="pill-icon">🏛️</span> Django Admin
+                </a>
+            </nav>
+        </div>
+        <div class="gold-trim-bar"></div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- CONTENEDOR PRINCIPAL                                                 -->
+    <!-- ===================================================================== -->
+    <main class="main-container">
+
+        <!-- Notificaciones Dinámicas (Toast / Alerts) -->
+        <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+        <!-- Layout de dos columnas -->
+        <div class="academic-grid">
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- COLUMNA IZQUIERDA: FORMULARIO DE REGISTRO DE LECTOR           -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="panel-card panel-form-card">
+                <div class="panel-header">
+                    <div class="panel-icon">✍️</div>
+                    <div>
+                        <h2 class="panel-title">Registro de Lector</h2>
+                        <p class="panel-subtitle">Ingreso normalizado de datos atómicos (3NF)</p>
+                    </div>
+                </div>
+
+                <div class="panel-body">
+                    <form id="form-registro-lector" class="academic-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="input-nombres" class="form-label">
+                                Nombres <span class="required-star">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="input-nombres"
+                                name="nombres"
+                                class="form-control"
+                                placeholder="Ej. Juan Carlos"
+                                required
+                                autocomplete="off"
+                            >
+                            <small class="field-hint">Campo atómico para primer y segundo nombre</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-half">
+                                <label for="input-apellido-p" class="form-label">
+                                    Apellido Paterno <span class="required-star">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="input-apellido-p"
+                                    name="apellido_p"
+                                    class="form-control"
+                                    placeholder="Ej. Pérez"
+                                    required
+                                    autocomplete="off"
+                                >
+                            </div>
+
+                            <div class="form-group col-half">
+                                <label for="input-apellido-m" class="form-label">
+                                    Apellido Materno <span class="required-star">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="input-apellido-m"
+                                    name="apellido_m"
+                                    class="form-control"
+                                    placeholder="Ej. Gómez"
+                                    required
+                                    autocomplete="off"
+                                >
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-submit-lector" class="btn-primary-academic">
+                            <span class="btn-text">Registrar Lector</span>
+                            <span class="btn-icon">→</span>
+                        </button>
+                    </form>
+
+                    <!-- Nota técnica informativa sobre las reglas del sistema -->
+                    <div class="info-box-academic">
+                        <div class="info-icon">ℹ️</div>
+                        <div class="info-text">
+                            <strong>Regla de Integridad:</strong> Los lectores con préstamos activos (libros sin devolver) están protegidos y el sistema bloqueará cualquier intento de eliminación con un estado <code>400 Bad Request</code>.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- COLUMNA DERECHA: LISTADO Y GESTIÓN DE LECTORES                -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="panel-card panel-list-card">
+                <div class="panel-header header-with-stats">
+                    <div>
+                        <h2 class="panel-title">Lectores Matriculados</h2>
+                        <p class="panel-subtitle">Padrón oficial de usuarios registrados en el sistema</p>
+                    </div>
+                    <div class="stats-badge" id="stats-counter" title="Total de lectores registrados">
+                        <span id="total-count">0</span> registros
+                    </div>
+                </div>
+
+                <!-- Barra de búsqueda y filtrado rápido -->
+                <div class="list-controls-bar">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            id="input-search"
+                            class="search-control"
+                            placeholder="Buscar lector por nombre o apellido..."
+                            autocomplete="off"
+                        >
+                    </div>
+                    <button id="btn-refresh" class="btn-secondary-academic" title="Recargar lista">
+                        🔄 Actualizar
+                    </button>
+                </div>
+
+                <!-- Contenedor dinámico de lectores -->
+                <div class="panel-body list-body">
+                    <div id="loading-spinner" class="loading-state">
+                        <div class="spinner-academic"></div>
+                        <p>Consultando registros de la biblioteca...</p>
+                    </div>
+
+                    <div id="lectores-list" class="lectores-grid" style="display: none;">
+                        <!-- Renderizado dinámicamente vía static/js/app.js -->
+                    </div>
+
+                    <!-- Estado vacío -->
+                    <div id="empty-state" class="empty-state" style="display: none;">
+                        <div class="empty-icon">📖</div>
+                        <h3>No se encontraron lectores registrados</h3>
+                        <p>Utiliza el formulario de la izquierda para agregar un nuevo lector.</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL DE ALERTA FORMAL (REGLA DE NEGOCIO HTTP 400)                    -->
+    <!-- ===================================================================== -->
+    <div id="modal-alert" class="modal-overlay" aria-hidden="true" role="dialog">
+        <div class="modal-card">
+            <div class="modal-badge-icon warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h3 class="modal-title" id="modal-alert-title">Acción Bloqueada</h3>
+            <p class="modal-message" id="modal-alert-message">
+                No se puede eliminar el usuario porque tiene libros sin devolver.
+            </p>
+            <div class="modal-technical-tag">
+                Código de Estado: <span class="tag-badge">HTTP 400 Bad Request</span>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-modal-close" class="btn-modal-primary">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página formal -->
+    <footer class="footer-academic">
+        <p>© 2026 Biblioteca Central • Universidad & Centro de Estudios • Sistema de Gestión Académica</p>
+    </footer>
+
+    <!-- Script de integración frontend con la API REST -->
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

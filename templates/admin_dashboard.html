@@ -1,0 +1,527 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Biblioteca Central</title>
+    <!-- Fuentes Académicas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Hoja de Estilos Principal -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+    <!-- ===================================================================== -->
+    <!-- ENCABEZADO INSTITUCIONAL - MODO ADMINISTRADOR                          -->
+    <!-- ===================================================================== -->
+    <header class="header-academic admin-mode">
+        <div class="header-content-wrapper">
+            <div class="brand-container">
+                <div class="emblem-seal admin-seal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <div class="badge-role-tag admin">Modo Administrador</div>
+                    <h1 class="brand-title">Biblioteca Central - Panel de Control</h1>
+                    <p class="brand-subtitle">Gestión de Catálogo • Precios • Portadas • Lectores 3NF</p>
+                </div>
+            </div>
+
+            <!-- Accesos rápidos y Perfil de Administrador -->
+            <div class="user-session-nav">
+                <div class="user-info-pill">
+                    <span class="user-avatar-mini">👤</span>
+                    <span class="user-name-text">{{ request.user.username }}</span>
+                    <span class="user-badge-super">Superadmin</span>
+                </div>
+                <a href="/api/" target="_blank" class="nav-pill" title="Explorar API REST">
+                    <span class="pill-icon">⚡</span> API
+                </a>
+                <a href="/admin/" target="_blank" class="nav-pill" title="Django Admin">
+                    <span class="pill-icon">🏛️</span> Django Admin
+                </a>
+                <a href="{% url 'logout' %}" class="btn-logout" title="Cerrar Sesión">
+                    <span class="logout-icon">🚪</span> Salir
+                </a>
+            </div>
+        </div>
+        <div class="gold-trim-bar"></div>
+    </header>
+
+    <!-- Barra de Pestañas de Gestión Administrativa -->
+    <div class="admin-tabs-bar">
+        <div class="admin-tabs-wrapper">
+            <button class="tab-button active" id="tab-btn-libros" onclick="cambiarTabAdmin('libros')">
+                <span class="tab-icon">📚</span> Catálogo de Libros (CRUD, Precios y Portadas)
+            </button>
+            <button class="tab-button" id="tab-btn-lectores" onclick="cambiarTabAdmin('lectores')">
+                <span class="tab-icon">👥</span> Padrón de Lectores (CRUD y Borrado Lógico)
+            </button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- CONTENEDOR PRINCIPAL                                                 -->
+    <!-- ===================================================================== -->
+    <main class="main-container">
+
+        <!-- Notificaciones Dinámicas (Toast / Alerts) -->
+        <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+        <!-- ================================================================= -->
+        <!-- PESTAÑA 1: GESTIÓN DEL CATÁLOGO DE LIBROS (CRUD COMPLETO)         -->
+        <!-- ================================================================= -->
+        <div id="seccion-libros" class="admin-section-tab active">
+            <div class="academic-grid">
+
+                <!-- Formulario para Agregar Nuevo Libro al Catálogo -->
+                <section class="panel-card panel-form-card">
+                    <div class="panel-header">
+                        <div class="panel-icon">📖</div>
+                        <div>
+                            <h2 class="panel-title">Nuevo Libro en Catálogo</h2>
+                            <p class="panel-subtitle">Registro con precio, autores e imagen desde tu PC</p>
+                        </div>
+                    </div>
+
+                    <div class="panel-body">
+                        <form id="form-registro-libro" class="academic-form" enctype="multipart/form-data">
+                            {% csrf_token %}
+
+                            <div class="form-group">
+                                <label for="input-libro-titulo" class="form-label">
+                                    Título del Libro <span class="required-star">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="input-libro-titulo"
+                                    name="titulo"
+                                    class="form-control"
+                                    placeholder="Ej. El Señor de los Anillos"
+                                    required
+                                    autocomplete="off"
+                                >
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-half">
+                                    <label for="input-libro-precio" class="form-label">
+                                        Precio / Valor ($ CLP) <span class="required-star">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="input-libro-precio"
+                                        name="precio"
+                                        class="form-control"
+                                        placeholder="Ej. 14990"
+                                        value="9990"
+                                        min="0"
+                                        required
+                                    >
+                                    <small class="field-hint">Valor referencial de arriendo o compra</small>
+                                </div>
+
+                                <div class="form-group col-half">
+                                    <label for="input-libro-autor" class="form-label">
+                                        Autor(es) <span class="required-star">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="input-libro-autor"
+                                        name="autor_nombre"
+                                        class="form-control"
+                                        placeholder="Ej. J.R.R. Tolkien"
+                                        required
+                                        autocomplete="off"
+                                    >
+                                    <small class="field-hint">Separar con coma si son varios</small>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="input-libro-editorial" class="form-label">
+                                    Editorial <span class="required-star">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="input-libro-editorial"
+                                    name="editorial_nombre"
+                                    class="form-control"
+                                    placeholder="Ej. Minotauro"
+                                    required
+                                    autocomplete="off"
+                                >
+                            </div>
+
+                            <!-- Carga de Imagen desde el PC -->
+                            <div class="form-group">
+                                <label for="input-libro-imagen" class="form-label">
+                                    Imagen de Portada (Cargar desde tu PC)
+                                </label>
+                                <div class="file-drop-zone" id="file-drop-zone">
+                                    <input
+                                        type="file"
+                                        id="input-libro-imagen"
+                                        name="imagen"
+                                        class="file-input-hidden"
+                                        accept="image/png, image/jpeg, image/webp"
+                                    >
+                                    <div class="file-drop-content">
+                                        <span class="file-icon">🖼️</span>
+                                        <span class="file-label" id="file-chosen-label">Haz clic para seleccionar imagen de portada</span>
+                                        <small class="file-formats">PNG, JPG, WEBP</small>
+                                    </div>
+                                    <!-- Previsualización -->
+                                    <img id="image-preview" class="image-preview-thumb" alt="Vista previa" style="display: none;">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="input-libro-descripcion" class="form-label">
+                                    Sinopsis / Resumen
+                                </label>
+                                <textarea
+                                    id="input-libro-descripcion"
+                                    name="descripcion"
+                                    class="form-control text-area-control"
+                                    placeholder="Breve reseña literaria de la obra..."
+                                    rows="3"
+                                ></textarea>
+                            </div>
+
+                            <button type="submit" id="btn-submit-libro" class="btn-primary-academic">
+                                <span class="btn-text">Publicar Libro en Catálogo</span>
+                                <span class="btn-icon">→</span>
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Listado Dinámico de Libros del Catálogo -->
+                <section class="panel-card panel-list-card">
+                    <div class="panel-header header-with-stats">
+                        <div>
+                            <h2 class="panel-title">Catálogo de Libros Registrados</h2>
+                            <p class="panel-subtitle">Administración de títulos, valores y portadas multimedia</p>
+                        </div>
+                        <div class="stats-badge" id="stats-counter-libros">
+                            <span id="total-libros-count">0</span> libros
+                        </div>
+                    </div>
+
+                    <div class="list-controls-bar">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input
+                                type="text"
+                                id="input-search-libros-admin"
+                                class="search-control"
+                                placeholder="Buscar libro por título, autor o editorial..."
+                                autocomplete="off"
+                            >
+                        </div>
+                        <button id="btn-refresh-libros-admin" class="btn-secondary-academic" title="Recargar lista">
+                            🔄 Actualizar
+                        </button>
+                    </div>
+
+                    <div class="panel-body list-body">
+                        <div id="loading-libros-admin" class="loading-state">
+                            <div class="spinner-academic"></div>
+                            <p>Consultando catálogo...</p>
+                        </div>
+
+                        <div id="libros-admin-list" class="admin-books-grid" style="display: none;">
+                            <!-- Renderizado dinámicamente vía static/js/script.js -->
+                        </div>
+
+                        <div id="empty-libros-admin" class="empty-state" style="display: none;">
+                            <div class="empty-icon">📚</div>
+                            <h3>No hay libros en el catálogo</h3>
+                            <p>Usa el formulario de la izquierda para agregar títulos con sus portadas y precios.</p>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- PESTAÑA 2: PADRÓN OFICIAL DE LECTORES (CRUD Y BORRADO LÓGICO)    -->
+        <!-- ================================================================= -->
+        <div id="seccion-lectores" class="admin-section-tab" style="display: none;">
+            <div class="academic-grid">
+
+                <!-- Formulario de Registro de Lector -->
+                <section class="panel-card panel-form-card">
+                    <div class="panel-header">
+                        <div class="panel-icon">✍️</div>
+                        <div>
+                            <h2 class="panel-title">Registrar Nuevo Lector</h2>
+                            <p class="panel-subtitle">Ingreso normalizado de datos atómicos (3NF)</p>
+                        </div>
+                    </div>
+
+                    <div class="panel-body">
+                        <form id="form-registro-lector" class="academic-form">
+                            {% csrf_token %}
+
+                            <div class="form-group">
+                                <label for="input-rut" class="form-label">
+                                    RUT / Identificador
+                                </label>
+                                <input
+                                    type="text"
+                                    id="input-rut"
+                                    name="rut"
+                                    class="form-control"
+                                    placeholder="Ej. 19.876.543-2"
+                                    autocomplete="off"
+                                >
+                                <small class="field-hint">Identificador único del usuario en el sistema</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="input-nombres" class="form-label">
+                                    Nombres <span class="required-star">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="input-nombres"
+                                    name="nombres"
+                                    class="form-control"
+                                    placeholder="Ej. Juan Carlos"
+                                    required
+                                    autocomplete="off"
+                                >
+                                <small class="field-hint">Campo atómico para primer y segundo nombre</small>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-half">
+                                    <label for="input-apellido-p" class="form-label">
+                                        Apellido Paterno <span class="required-star">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="input-apellido-p"
+                                        name="apellido_p"
+                                        class="form-control"
+                                        placeholder="Ej. Pérez"
+                                        required
+                                        autocomplete="off"
+                                    >
+                                </div>
+
+                                <div class="form-group col-half">
+                                    <label for="input-apellido-m" class="form-label">
+                                        Apellido Materno <span class="required-star">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="input-apellido-m"
+                                        name="apellido_m"
+                                        class="form-control"
+                                        placeholder="Ej. Gómez"
+                                        required
+                                        autocomplete="off"
+                                    >
+                                </div>
+                            </div>
+
+                            <button type="submit" id="btn-submit-lector" class="btn-primary-academic">
+                                <span class="btn-text">Registrar Lector</span>
+                                <span class="btn-icon">→</span>
+                            </button>
+                        </form>
+
+                        <div class="info-box-academic">
+                            <div class="info-icon">ℹ️</div>
+                            <div class="info-text">
+                                <strong>Protección de Integridad:</strong> Los lectores con préstamos activos (libros sin devolver) están protegidos y el sistema bloqueará su eliminación con código <code>400 Bad Request</code>.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Listado y Gestión de Lectores -->
+                <section class="panel-card panel-list-card">
+                    <div class="panel-header header-with-stats">
+                        <div>
+                            <h2 class="panel-title">Padrón Oficial de Lectores</h2>
+                            <p class="panel-subtitle">Administración de usuarios y aplicación de borrado lógico</p>
+                        </div>
+                        <div class="stats-badge" id="stats-counter" title="Total de lectores registrados">
+                            <span id="total-count">0</span> lectores
+                        </div>
+                    </div>
+
+                    <div class="list-controls-bar">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input
+                                type="text"
+                                id="input-search"
+                                class="search-control"
+                                placeholder="Buscar por nombre, apellido o RUT..."
+                                autocomplete="off"
+                            >
+                        </div>
+                        <button id="btn-refresh" class="btn-secondary-academic" title="Recargar lista">
+                            🔄 Actualizar
+                        </button>
+                    </div>
+
+                    <!-- Filtro por Estado: Activos vs Desactivados (Borrado Lógico) -->
+                    <div class="filter-pills-bar">
+                        <button class="filter-pill active" id="pill-lectores-activos" onclick="filtrarEstadoLectoresAdmin('activos')">
+                            🟢 Lectores Activos (<span id="count-lectores-activos">0</span>)
+                        </button>
+                        <button class="filter-pill" id="pill-lectores-desactivados" onclick="filtrarEstadoLectoresAdmin('desactivados')">
+                            ⚪ Desactivados / Papelera (<span id="count-lectores-desactivados">0</span>)
+                        </button>
+                        <button class="filter-pill" id="pill-lectores-todos" onclick="filtrarEstadoLectoresAdmin('todos')">
+                            📋 Todos (<span id="count-lectores-todos">0</span>)
+                        </button>
+                    </div>
+
+                    <div class="panel-body list-body">
+                        <div id="loading-spinner" class="loading-state">
+                            <div class="spinner-academic"></div>
+                            <p>Consultando registros de lectores...</p>
+                        </div>
+
+                        <div id="lectores-list" class="lectores-grid" style="display: none;">
+                            <!-- Renderizado dinámicamente vía script.js -->
+                        </div>
+
+                        <div id="empty-state" class="empty-state" style="display: none;">
+                            <div class="empty-icon">👥</div>
+                            <h3>No se encontraron lectores registrados</h3>
+                            <p>Utiliza el formulario de la izquierda para agregar un nuevo lector.</p>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL DE EDICIÓN DE LIBRO                                             -->
+    <!-- ===================================================================== -->
+    <div id="modal-editar-libro" class="modal-overlay" aria-hidden="true" role="dialog">
+        <div class="modal-card modal-card-large">
+            <div class="modal-header-edit">
+                <div class="modal-header-icon">✏️</div>
+                <div>
+                    <h3 class="modal-title" style="text-align: left;">Editar Libro en Catálogo</h3>
+                    <p class="modal-subtitle-text" style="text-align: left; font-size: 0.82rem; color: #64748B;">Actualiza título, precio, autores o reemplaza la portada</p>
+                </div>
+            </div>
+
+            <form id="form-editar-libro" class="academic-form" enctype="multipart/form-data" style="margin-top: 1.25rem;">
+                <input type="hidden" id="edit-libro-id" name="id">
+
+                <div class="form-group">
+                    <label for="edit-libro-titulo" class="form-label" style="text-align: left;">
+                        Título del Libro <span class="required-star">*</span>
+                    </label>
+                    <input type="text" id="edit-libro-titulo" name="titulo" class="form-control" required autocomplete="off">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-half">
+                        <label for="edit-libro-precio" class="form-label" style="text-align: left;">
+                            Precio / Valor ($ CLP) <span class="required-star">*</span>
+                        </label>
+                        <input type="number" id="edit-libro-precio" name="precio" class="form-control" min="0" required>
+                    </div>
+
+                    <div class="form-group col-half">
+                        <label for="edit-libro-autor" class="form-label" style="text-align: left;">
+                            Autor(es) <span class="required-star">*</span>
+                        </label>
+                        <input type="text" id="edit-libro-autor" name="autor_nombre" class="form-control" required autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-libro-editorial" class="form-label" style="text-align: left;">
+                        Editorial <span class="required-star">*</span>
+                    </label>
+                    <input type="text" id="edit-libro-editorial" name="editorial_nombre" class="form-control" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-libro-imagen" class="form-label" style="text-align: left;">
+                        Cambiar Portada (Opcional)
+                    </label>
+                    <div class="file-drop-zone" id="edit-file-drop-zone">
+                        <input type="file" id="edit-libro-imagen" name="imagen" class="file-input-hidden" accept="image/png, image/jpeg, image/webp">
+                        <div class="file-drop-content">
+                            <span class="file-icon">🖼️</span>
+                            <span class="file-label" id="edit-file-chosen-label">Haz clic para reemplazar la portada</span>
+                        </div>
+                        <img id="edit-image-preview" class="image-preview-thumb" alt="Vista previa" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-libro-descripcion" class="form-label" style="text-align: left;">
+                        Sinopsis / Resumen
+                    </label>
+                    <textarea id="edit-libro-descripcion" name="descripcion" class="form-control text-area-control" rows="2"></textarea>
+                </div>
+
+                <div class="modal-actions-edit">
+                    <button type="button" id="btn-cancelar-edicion-libro" class="btn-secondary-academic">Cancelar</button>
+                    <button type="submit" id="btn-submit-edicion-libro" class="btn-primary-academic" style="margin-top: 0;">
+                        <span class="btn-text">Guardar Cambios</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL DE ALERTA FORMAL (REGLA DE NEGOCIO HTTP 400)                    -->
+    <!-- ===================================================================== -->
+    <div id="modal-alert" class="modal-overlay" aria-hidden="true" role="dialog">
+        <div class="modal-card">
+            <div class="modal-badge-icon warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h3 class="modal-title" id="modal-alert-title">Acción Bloqueada</h3>
+            <p class="modal-message" id="modal-alert-message">
+                No se puede eliminar el usuario porque tiene libros sin devolver.
+            </p>
+            <div class="modal-technical-tag">
+                Código de Estado: <span class="tag-badge">HTTP 400 Bad Request</span>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-modal-close" class="btn-modal-primary">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página formal -->
+    <footer class="footer-academic">
+        <p>© 2026 Biblioteca Central • Universidad & Centro de Estudios • Panel Administrativo</p>
+    </footer>
+
+    <!-- Script de lógica frontend -->
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso al Sistema - Biblioteca Central</title>
+    <!-- Fuentes Académicas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Hoja de Estilos -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="login-body">
+
+    <!-- Encabezado Institucional Clásico -->
+    <header class="header-academic">
+        <div class="header-content-wrapper">
+            <div class="brand-container">
+                <div class="emblem-seal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        <line x1="9" y1="7" x2="15" y2="7"></line>
+                        <line x1="9" y1="11" x2="15" y2="11"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title">Biblioteca Central - Sistema de Gestión</h1>
+                    <p class="brand-subtitle">Portal de Acceso Académico • Control de Préstamos y Catálogo 3NF</p>
+                </div>
+            </div>
+
+            <nav class="quick-nav">
+                <a href="/api/" target="_blank" class="nav-pill" title="Explorar API REST">
+                    <span class="pill-icon">⚡</span> API REST
+                </a>
+            </nav>
+        </div>
+        <div class="gold-trim-bar"></div>
+    </header>
+
+    <!-- Contenedor de Login con dos columnas elegantes -->
+    <main class="login-main-container">
+        
+        <div class="login-hero-header">
+            <h2 class="login-hero-title">Identificación de Usuario</h2>
+            <p class="login-hero-subtitle">Selecciona tu perfil de acceso para ingresar a los servicios bibliotecarios</p>
+        </div>
+
+        <!-- Alertas de mensajes de error de Django -->
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert-banner error">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-text">{{ message }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Paneles de Autenticación Lado a Lado -->
+        <div class="login-grid-dual">
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- 1. LOGIN LECTOR (USUARIO REGULAR)                             -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="login-card lector-card-theme">
+                <div class="login-card-header">
+                    <div class="login-role-icon lector">📖</div>
+                    <div>
+                        <h3 class="login-card-title">Acceso Lector</h3>
+                        <p class="login-card-desc">Estudiantes, profesores e investigadores</p>
+                    </div>
+                </div>
+
+                <div class="login-card-body">
+                    <form method="POST" action="{% url 'login' %}" class="login-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="tipo_login" value="lector">
+
+                        <div class="form-group">
+                            <label for="lector_identificador" class="form-label">
+                                RUT o Usuario <span class="required-star">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="lector_identificador"
+                                name="lector_identificador"
+                                class="form-control"
+                                placeholder="Ej. 12.345.678-9 o juan"
+                                required
+                                autocomplete="username"
+                            >
+                            <small class="field-hint">Ingresa tu RUT con puntos y guión o nombre de usuario</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lector_password" class="form-label">
+                                Contraseña <span class="required-star">*</span>
+                            </label>
+                            <input
+                                type="password"
+                                id="lector_password"
+                                name="lector_password"
+                                class="form-control"
+                                placeholder="••••••••"
+                                required
+                                autocomplete="current-password"
+                            >
+                        </div>
+
+                        <button type="submit" class="btn-primary-academic btn-full">
+                            <span class="btn-text">Ingresar a Mi Biblioteca</span>
+                            <span class="btn-icon">→</span>
+                        </button>
+                    </form>
+
+                    <!-- Credenciales de prueba -->
+                    <div class="demo-credentials-box">
+                        <div class="demo-title">💡 Cuentas de Lector disponibles:</div>
+                        <ul class="demo-list">
+                            <li><strong>Juan Pérez:</strong> Usuario: <code>juan</code> (o RUT: <code>12.345.678-9</code>) | Pass: <code>juan1234</code> <em>(Préstamo al día)</em></li>
+                            <li><strong>Carlos Mendoza:</strong> Usuario: <code>carlos</code> (o RUT: <code>15.987.654-3</code>) | Pass: <code>carlos1234</code> <em>(Préstamo moroso)</em></li>
+                            <li><strong>Ana Ríos:</strong> Usuario: <code>ana</code> (o RUT: <code>18.765.432-1</code>) | Pass: <code>ana1234</code> <em>(Sin préstamos)</em></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ------------------------------------------------------------- -->
+            <!-- 2. LOGIN ADMINISTRADOR (SUPERUSUARIO)                         -->
+            <!-- ------------------------------------------------------------- -->
+            <section class="login-card admin-card-theme">
+                <div class="login-card-header">
+                    <div class="login-role-icon admin">🛡️</div>
+                    <div>
+                        <h3 class="login-card-title">Acceso Administrativo</h3>
+                        <p class="login-card-desc">Personal de biblioteca y gestión de catálogo</p>
+                    </div>
+                </div>
+
+                <div class="login-card-body">
+                    <form method="POST" action="{% url 'login' %}" class="login-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="tipo_login" value="admin">
+
+                        <div class="form-group">
+                            <label for="admin_username" class="form-label">
+                                Usuario Administrador <span class="required-star">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="admin_username"
+                                name="admin_username"
+                                class="form-control"
+                                placeholder="Ej. admin"
+                                required
+                                autocomplete="username"
+                            >
+                            <small class="field-hint">Cuenta con privilegios de superusuario o staff</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin_password" class="form-label">
+                                Contraseña de Superusuario <span class="required-star">*</span>
+                            </label>
+                            <input
+                                type="password"
+                                id="admin_password"
+                                name="admin_password"
+                                class="form-control"
+                                placeholder="••••••••"
+                                required
+                                autocomplete="current-password"
+                            >
+                        </div>
+
+                        <!-- Botón rojo/granate discreto para ingresar como admin -->
+                        <button type="submit" class="btn-admin-danger btn-full">
+                            <span class="btn-icon">🔒</span>
+                            <span class="btn-text">Acceder al Panel Admin</span>
+                        </button>
+                    </form>
+
+                    <!-- Credenciales de prueba -->
+                    <div class="demo-credentials-box admin-demo">
+                        <div class="demo-title">🔑 Acceso Superusuario:</div>
+                        <ul class="demo-list">
+                            <li><strong>Superadmin:</strong> Usuario: <code>admin</code> | Clave: <code>admin1234</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Pie de página formal -->
+    <footer class="footer-academic">
+        <p>© 2026 Biblioteca Central • Universidad & Centro de Estudios • Sistema de Gestión Académica</p>
+    </footer>
+
+</body>
+</html>
